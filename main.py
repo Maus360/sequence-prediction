@@ -1,9 +1,7 @@
 import numpy as np
 
-# 1 2 3 4 5 6 7
 
-
-def init(
+def start(
     sequence: list,
     p: int,
     error: int,
@@ -42,8 +40,7 @@ def init(
         i += 1
     y = np.array(y)
     x = np.array(x)
-    run(x, y, p, q, error, max_iter, code_for_learning, code_for_training)
-    return 0
+    return run(x, y, p, q, error, max_iter, code_for_learning, code_for_training)
 
 
 def run(
@@ -56,43 +53,60 @@ def run(
     code_for_learning: str,
     code_for_training: str,
 ):
-    m = 4
-    alpha = 0.000_000_000_05
+    m = 2
+    alpha = 0.005
     error_all = 0
-    context = np.zeros((x.shape[0], m))
+    if code_for_learning[0] == "1":
+        context = np.zeros((x.shape[0], m))
+    else:
+        context = np.random.rand(x.shape[0], m)
     x = np.concatenate((x, context), axis=1)
-    w1 = np.random.rand(p + m, m) * 2 - 1
-    w2 = np.random.rand(m, 1) * 2 - 1
-
+    # reshape x matrix to make all samples matrixes (4, 1), not vector (4, )
+    x = x.reshape(x.shape[0], 1, x.shape[1])
+    w1 = (np.random.rand(p + m, m) * 2 - 1) / 10
+    w2 = (np.random.rand(m, 1) * 2 - 1) / 10
+    # this code learn for each sample
     for j in range(max_iter):
+        error_all = 0
+        if code_for_learning[1] == "1":
+            x[:, :, -m:] = 0
         for i in range(x.shape[0]):
             hidden_layer = np.matmul(x[i], w1)
             output = np.matmul(hidden_layer, w2)
             dy = output - y[i]
-            w1 -= alpha * dy * np.matmul(np.array([x[i]]).transpose(), w2.transpose())
-            w2 -= alpha * dy * np.array([hidden_layer]).transpose()
+            w1 -= alpha * dy * np.matmul(x[i].transpose(), w2.transpose())
+            w2 -= alpha * dy * hidden_layer.transpose()
             try:
                 x[i + 1][-m:] = hidden_layer
             except:
-                x[0][-m:] = hidden_layer
+                pass
+            # print("x=", x[i], "etalon", y[i], "result=", output)
         for i in range(x.shape[0]):
             hidden_layer = np.matmul(x[i], w1)
             output = np.matmul(hidden_layer, w2)
             dy = output - y[i]
-            error_all += (dy ** 2).sum()
-
-        print(j, " ", error_all)
+            error_all += (dy ** 2)[0]
+        print(j + 1, " ", error_all[0])
+        if error_all <= error:
+            break
+    train = np.concatenate((x[-1, 0, 1:-m], y[-1].reshape(1)))
+    train = np.append(train, np.array([0] * m))
+    if code_for_training[0]:
+        train[-m:] = 0
+    hidden_layer = np.matmul(train, w1)
+    output = np.matmul(hidden_layer, w2)
+    return output[0]
 
 
 if __name__ == "__main__":
     print(
-        init(
-            sequence=None,
-            p=None,
-            error=100,
-            max_iter=100_000_000_000,
-            code_for_learning="00",
-            code_for_training="00",
+        start(
+            sequence=[1, 2, 3, 3, 2, 1, 1, 2],
+            p=4,
+            error=0.001,
+            max_iter=100000000,
+            code_for_learning="11",
+            code_for_training="11",
         )
     )
 
