@@ -54,8 +54,9 @@ def run(
     code_for_training: str,
 ):
     m = 2
-    alpha = 0.005
+    alpha = 0.000000005
     error_all = 0
+    k = 0
     if code_for_learning[0] == "1":
         context = np.zeros((x.shape[0], m))
     else:
@@ -89,22 +90,30 @@ def run(
         print(j + 1, " ", error_all[0])
         if error_all <= error:
             break
-    train = np.concatenate((x[-1, 0, 1:-m], y[-1].reshape(1)))
-    train = np.append(train, np.array([0] * m))
-    if code_for_training[0]:
-        train[-m:] = 0
-    hidden_layer = np.matmul(train, w1)
-    output = np.matmul(hidden_layer, w2)
-    return output[0]
+    k = y[-1].reshape(1)
+    X = x[-1, 0, :-m]
+    out = []
+    for i in range(5):
+        X = X[1:]
+        train = np.concatenate((X, k))
+        X = np.concatenate((X, k))
+        train = np.append(train, np.array([0] * m))
+        if code_for_training[0]:
+            train[-m:] = 0
+        hidden_layer = np.matmul(train, w1)
+        output = np.matmul(hidden_layer, w2)
+        k = output
+        out.append(k[0])
+    return out
 
 
 if __name__ == "__main__":
     print(
         start(
-            sequence=[1, 2, 3, 3, 2, 1, 1, 2],
-            p=4,
-            error=0.001,
-            max_iter=100000000,
+            sequence=[1, 2, 5, 15, 52, 203, 877, 4140, 21147],
+            p=5,
+            error=0.00000001,
+            max_iter=1000000,
             code_for_learning="11",
             code_for_training="11",
         )
