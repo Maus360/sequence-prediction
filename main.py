@@ -6,6 +6,9 @@ def start(
     p: int,
     error: int,
     max_iter: int,
+    m: int,
+    alpha: float,
+    predict: int,
     code_for_learning: str,
     code_for_training: str,
 ):
@@ -16,10 +19,18 @@ def start(
     q = len(sequence)
     if p == None:
         p = int(input("Enter window size:\n"))
+    if p > q:
+        raise ("Invalid size of window, must be less then q")
     if error == None:
         error = int(input("Enter max learning error:\n"))
     if max_iter == None:
         max_iter = int(input("Enter max number of iterations:\n"))
+    if m == None:
+        m = int(input("Enter number of neurons on second layer:\n"))
+    if alpha == None:
+        alpha = int(input("Enter learning step:\n"))
+    if predict == None:
+        predict = int(input("Enter count of numbers to predict:\n"))
     if code_for_learning == None:
         code_for_learning = input(
             "Enter learning code:\n"
@@ -28,8 +39,7 @@ def start(
         code_for_training = input(
             "Enter training code:\n"
         )  # on\off for first|on\off for others
-    if p > q:
-        raise ("Invalid size of window, must be less then q")
+    
 
     x = []
     y = []
@@ -40,7 +50,7 @@ def start(
         i += 1
     y = np.array(y)
     x = np.array(x)
-    return run(x, y, p, q, error, max_iter, code_for_learning, code_for_training)
+    return run(x, y, p, q, error, max_iter, m, alpha, predict, code_for_learning, code_for_training)
 
 
 def run(
@@ -50,11 +60,12 @@ def run(
     q: int,
     error: int,
     max_iter: int,
+    m: int,
+    alpha: float,
+    predict: int,
     code_for_learning: str,
     code_for_training: str,
 ):
-    m = 2
-    alpha = 0.000000005
     error_all = 0
     k = 0
     if code_for_learning[0] == "1":
@@ -93,7 +104,7 @@ def run(
     k = y[-1].reshape(1)
     X = x[-1, 0, :-m]
     out = []
-    for i in range(5):
+    for i in range(predict):
         X = X[1:]
         train = np.concatenate((X, k))
         X = np.concatenate((X, k))
@@ -110,10 +121,13 @@ def run(
 if __name__ == "__main__":
     print(
         start(
-            sequence=[1, 2, 5, 15, 52, 203, 877, 4140, 21147],
-            p=5,
+            sequence=[1, 0, -1, 0, 1, 0, -1, 0],
+            p=4,
             error=0.00000001,
             max_iter=1000000,
+            m = 2,
+            alpha = 0.0005,
+            predict = 5,
             code_for_learning="11",
             code_for_training="11",
         )
